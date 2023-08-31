@@ -1,11 +1,11 @@
 <?php
 session_start();
-if($_SERVER['REQUEST_METHOD'] == "POST"){
+if($_SERVER['REQUEST_METHOD'] == "POST" && !isset($_SESSION['username'])){
     $username = $_POST['username'];
     $password = $_POST['password'];
     try{
         require_once './database.php';
-        $query = "SELECT password FROM conturi WHERE username = :username";
+        $query = "SELECT password FROM cont WHERE username = :username";
         $stmt = $pdo -> prepare($query);
         $stmt -> bindParam(':username', $username);
         $stmt -> execute();

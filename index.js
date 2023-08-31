@@ -28,7 +28,6 @@ fundal.appendChild(img_fundal);
 img_fundal.src = images_list[index_img];
 
 
-
 function Next(){
     index_img += 1;
     if(index_img >= (images_list.length-1)){
@@ -105,13 +104,41 @@ if(date<10){
     date = '0' + date;
 }
 var c_date = vr + '-' + month + '-' + date;
-var c_date1 = vr + '-' + month + '-' + (date + 1);
+var c_date1 = vr + '-' + month + '-' + date;
 document.getElementById('date1').value = c_date;
 document.getElementById('date1').setAttribute('min',c_date)
 document.getElementById('date2').setAttribute('min',c_date1)
 document.getElementById('date2').value = c_date1;
 
+function calculateDaysInsideOutside(mainStartDate, mainEndDate, inputStartDate, inputEndDate) {
+    const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+
+    const mainStart = new Date(mainStartDate);
+    const mainEnd = new Date(mainEndDate);
+    const inputStart = new Date(inputStartDate);
+    const inputEnd = new Date(inputEndDate);
+
+    let daysInside = 0;
+    let daysOutside = 0;
+
+    // Iterate through each day in the input interval
+    for (let currentDate = inputStart; currentDate <= inputEnd; currentDate.setDate(currentDate.getDate() + 1)) {
+        if (currentDate >= mainStart && currentDate <= mainEnd) {
+            daysInside++;
+        } else {
+            daysOutside++;
+        }
+    }
+
+    return { daysInside, daysOutside };
+}
+
 function calculeaza(){
+
+    const xmlhtt = new XMLHttpRequest();
+    xmlhtt.onload = function(){
+        const myObiect = JSON.parse(this.responseText);
+        
     let remove = document.querySelectorAll('#pret_camera');
     if(remove){
         remove.forEach((element)=>{
@@ -120,65 +147,83 @@ function calculeaza(){
     }
     var pers = document.getElementById('pers').value;
     pers = Math.ceil(pers/2);
-
+    let inceput = myObiect.inceput;
+    let final = myObiect.final;
+    inceput = new Date(inceput)
+    final = new Date(final);
+    console.log(new Date(final));
     const inputDate1 = new Date(document.getElementById('date1').value);
     const inputDate2 = new Date(document.getElementById('date2').value);
 
-    // Calculate the time difference in milliseconds
-    const timeDifferenceInMilliseconds = Math.abs(inputDate2 - inputDate1);
+    let obc = calculateDaysInsideOutside(inceput,final,inputDate1,inputDate2);
+        if(obc.daysInside && obc.daysOutside){
+            if(pers < 6 ){
+            percamera = (obc.daysInside * myObiect.camera_special * pers) + (obc.daysOutside * myObiect.camera * pers);
+            }
+            else{
+                percamera = ((obc.daysInside * myObiect.cabana) + (obc.daysOutside * myObiect.cabana_special)) * pers;
+            }
+        }
+        else if(obc.daysInside == 0 && obc.daysOutside > 0){
+            if(pers < 6){
+            percamera = (obc.daysOutside * myObiect.camera) * pers;
+            }else{
+                percamera = (obc.daysOutside * myObiect.cabana) * pers;
+            }
+        }
+        else if(obc.daysOutside == 0 && obc.daysInside > 0){
+            if(pers < 6){
+                percamera = (obc.daysInside * myObiect.camera_special) * pers
+            }
+            else{
+                percamera = (obc.daysInside * myObiect.cabana_special) * pers
+            }
+        }
+            let perzi = document.createElement('div');
+            perzi.classList.add('pret_camera');
+            perzi.setAttribute('id', 'pret_camera');
+            var p_ret = document.createElement('p');
+            p_ret.textContent = String(percamera) + "lei"   
+            let newdiv = document.createElement('div');
+            newdiv.classList.add("pret_zi");
+            let containerdiv = document.createElement('div');
+            let ul = document.createElement('ul');
+            let ui1 = document.createElement('li');
+            ui1.textContent = "copii sub 7 ani au  gratuitate";
+            ul.appendChild(ui1);
+            let ui2 = document.createElement('li');
+            ui2.textContent = "4 camere matrimoniale cu baie interioara";
+            ul.appendChild(ui2);
+            let ui3 = document.createElement('li');
+            ui3.textContent = "2 camere matrimoniale cu baie pe hol";
+            ul.appendChild(ui3);
+            let ui4 = document.createElement('li');
+            ui4.textContent = "8 locuri de parcare in incinta pensiuni";
+            ul.appendChild(ui4);
+            let ui5 = document.createElement('li');
+            ui5.textContent = "serviciile pot fi achitate si cu tichete de vacanta Sodexo Turist Pass sau UP Romania Cheque Vacances.";
+            ul.appendChild(ui5);
+            let li = document.createElement('li');
+            li.textContent = "camera( max 2 persoane) - 160lei/zi";
+            ul.appendChild(li)
+            let li1 = document.createElement('li');
+            li1.textContent = "1000/zi (toata pensiunea)"
+            ul.appendChild(li1);
+            if(myObiect.special){
+                let pi = document.createElement('li');
+                pi.textContent = myObiect.special;
+                ul.append(pi);
+            }
+            containerdiv.appendChild(ul);
+            containerdiv.classList.add("conatinerdiv");
+            newdiv.appendChild(p_ret)
+            perzi.appendChild(newdiv)
+            perzi.appendChild(containerdiv);
+            pret.appendChild(perzi);
 
-    // Convert milliseconds to days
-    const millisecondsInADay = 1000 * 60 * 60 * 24;
-    const differenceInDays = Math.floor(timeDifferenceInMilliseconds / millisecondsInADay);
-
-    
-    
-
-    if(pers < 6){
-    percamera = differenceInDays*160 * pers;
     }
-    else{
-        percamera = differenceInDays* 1000;
-    }
-
-    let perzi = document.createElement('div');
-    perzi.classList.add('pret_camera');
-    perzi.setAttribute('id', 'pret_camera');
-    var pElement = document.createElement('p');
-    var p_ret = document.createElement('p');
-    p_ret.textContent = String(percamera) + "lei"   
-    let newdiv = document.createElement('div');
-    newdiv.classList.add("pret_zi");
-    let containerdiv = document.createElement('div');
-    let ul = document.createElement('ul');
-    let ui1 = document.createElement('li');
-    ui1.textContent = "copii sub 7 ani au  gratuitate";
-    ul.appendChild(ui1);
-    let ui2 = document.createElement('li');
-    ui2.textContent = "4 camere matrimoniale cu baie interioara";
-    ul.appendChild(ui2);
-    let ui3 = document.createElement('li');
-    ui3.textContent = "2 camere matrimoniale cu baie pe hol";
-    ul.appendChild(ui3);
-    let ui4 = document.createElement('li');
-    ui4.textContent = "8 locuri de parcare in incinta pensiuni";
-    ul.appendChild(ui4);
-    let ui5 = document.createElement('li');
-    ui5.textContent = "serviciile pot fi achitate si cu tichete de vacanta Sodexo Turist Pass sau UP Romania Cheque Vacances.";
-    ul.appendChild(ui5);
-    let li = document.createElement('li');
-    li.textContent = "camera( max 2 persoane) - 160lei/zi";
-    ul.appendChild(li)
-    let li1 = document.createElement('li');
-    li1.textContent = "1000/zi (toata pensiunea)"
-    ul.appendChild(li1);
-    containerdiv.appendChild(ul);
-    containerdiv.classList.add("conatinerdiv");
-    newdiv.appendChild(p_ret)
-    perzi.appendChild(newdiv)
-    perzi.appendChild(containerdiv);
-    pret.appendChild(perzi);
-
+    xmlhtt.open("GET", "/php/api1.php");
+    xmlhtt.send();
 }
 
 function verificare_persoane(){
@@ -196,7 +241,7 @@ function schimaba_data_low(){
     const Day1 = new Date(inputDate1)
     const Day2 = new Date(date2Element.value);
     if(Day1.getTime() > Day2.getTime()){ 
-    Day1.setDate(Day1.getDate() + 1);
+    Day1.setDate(Day1.getDate());
     const nextDayFormatted = Day1.toISOString().split('T')[0];
     date2Element.value = nextDayFormatted;
     date2Element.setAttribute('min', nextDayFormatted);
